@@ -2,4 +2,6 @@
 *.jpeg
 *.png
 
-darknet53.conv.74
+*darknet53.conv.74
+
+*.DS_Store
