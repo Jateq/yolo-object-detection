@@ -1,14 +1,4 @@
 
-
-"""
-Course:  Training YOLO v3 for Objects Detection with Custom Data
-
-Section-3
-Labelling new Dataset in YOLO format
-File: creating-files-data-and-name.py
-"""
-
-
 # Creating files labelled_data.data and classes.names
 # for training in Darknet framework
 #
@@ -21,18 +11,6 @@ File: creating-files-data-and-name.py
 # Files classes.names and labelled_data.data needed to train
 # in Darknet framework
 
-
-"""
-Start of:
-Setting up full path to directory with labelled images
-"""
-
-# Full or absolute path to the folder with images
-# Find it with Py file getting-full-path.py
-# Pay attention! If you're using Windows, yours path might looks like:
-# r'C:\Users\my_name\Downloads\video-to-annotate'
-# or:
-# 'C:\\Users\\my_name\\Downloads\\video-to-annotate'
 full_path_to_images = 'custom_data'
 
 """

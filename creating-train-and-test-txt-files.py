@@ -1,14 +1,4 @@
 
-
-"""
-Course:  Training YOLO v3 for Objects Detection with Custom Data
-
-Section-3
-Labelling new Dataset in YOLO format
-File: creating-train-and-test-txt-files.py
-"""
-
-
 # Creating files train.txt and test.txt
 # for training in Darknet framework
 #
@@ -21,7 +11,7 @@ File: creating-train-and-test-txt-files.py
 # Files train.txt and test.txt with full paths to images
 
 
-# Importing needed library
+
 import os
 
 
