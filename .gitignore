@@ -2,6 +2,11 @@
 *.jpeg
 *.png
 
+# training using darknet file is 150mb
 *darknet53.conv.74
 
+# trained model but file is too big
+yolov3_custom_2000.weights
+
 *.DS_Store
+
