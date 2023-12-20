@@ -61,18 +61,12 @@ for current_dir, dirs, files in os.walk('.'):
     # Going through all files
     for f in files:
         # Checking if filename ends with '.jpeg'
-        if f.endswith('.jpg'):
+        if f.lower().endswith(('.jpg', '.jpeg', '.png', '.JPG', '.HEIC')):
+
             # Preparing path to save into train.txt file
-            # Pay attention!
-            # If you're using Windows, it might need to change
-            # this: + '/' +
-            # to this: + '\' +
-            # or to this: + '\\' +
             path_to_save_into_txt_files = full_path_to_images + '/' + f
 
-            # Appending the line into the list
-            # We use here '\n' to move to the next line
-            # when writing lines into txt files
+        
             p.append(path_to_save_into_txt_files + '\n')
 
 

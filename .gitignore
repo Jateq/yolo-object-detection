@@ -7,6 +7,7 @@
 
 # trained model but file is too big
 yolov3_custom_2000.weights
+*.weights
 
 *.DS_Store
 
