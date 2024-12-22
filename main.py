@@ -1,74 +1,70 @@
+from ultralytics import YOLO
 import cv2
-import numpy as np
-import urllib.request
-
-url = 'http://192.168.1.6/cam-hi.jpg'
-
-cap = cv2.VideoCapture(url)
-whT=320
-confThreshold = 0.5
-nmsThreshold = 0.3
-classesfile='custom_data/classes.names'
-classNames=[]
-with open(classesfile,'rt') as f:
-    classNames=f.read().rstrip('\n').split('\n')
+import math
 
 
-modelConfig = 'yolov3_custom.cfg'
-modelWeights= 'yolov3_custom_2000.weights'
-net = cv2.dnn.readNetFromDarknet(modelConfig,modelWeights)
-net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-def findObject(outputs,im):
-    hT,wT,cT = im.shape
-    bbox = []
-    classIds = []
-    confs = []
-    found_cat = False
-    found_bird = False
-    for output in outputs:
-        for det in output:
-            scores = det[5:]
-            classId = np.argmax(scores)
-            confidence = scores[classId]
-            if confidence > confThreshold:
-                w,h = int(det[2]*wT), int(det[3]*hT)
-                x,y = int((det[0]*wT)-w/2), int((det[1]*hT)-h/2)
-                bbox.append([x,y,w,h])
-                classIds.append(classId)
-                confs.append(float(confidence))
-    
-    indices = cv2.dnn.NMSBoxes(bbox,confs,confThreshold,nmsThreshold)
-    print(indices)
-   
-    for i in indices:
-        i = i[0]
-        box = bbox[i]
-        x,y,w,h = box[0],box[1],box[2],box[3]
-        if classNames[classIds[i]] == 'bird':
-            found_bird = True
-        elif classNames[classIds[i]] == 'cat':
-            found_cat = True
-            
-        cv2.rectangle(im,(x,y),(x+w,y+h),(255,0,255),2)
-        cv2.putText(im, f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%', (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,0,255), 2)
-       
 
+# Start video capture from ESP32-CAM
+cap = cv2.VideoCapture(0)
+cap.set(3, 640)
+cap.set(4, 480)
+
+# Load the YOLO model
+model = YOLO("yolo-Weights/yolov8n.pt")
+
+# Object classes
+classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
+              "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
+              "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
+              "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
+              "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
+              "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli",
+              "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
+              "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
+              "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+              "teddy bear", "hair drier", "toothbrush"
+              ]
 
 while True:
-    img_resp=urllib.request.urlopen(url)
-    imgnp=np.array(bytearray(img_resp.read()),dtype=np.uint8)
-    im = cv2.imdecode(imgnp,-1)
-    sucess, img= cap.read()
-    blob=cv2.dnn.blobFromImage(im,1/255,(whT,whT),[0,0,0],1,crop=False)
-    net.setInput(blob)
-    layernames=net.getLayerNames()
-    outputNames = [layernames[i[0]-1] for i in net.getUnconnectedOutLayers()]
+    success, img = cap.read()
 
-    outputs = net.forward(outputNames)
+    if not success:
+        print("Failed to retrieve frame. Check the ESP32-CAM URL.")
+        break
 
-    findObject(outputs,im)
+    results = model(img, stream=True)
 
+    # Process detections
+    for r in results:
+        boxes = r.boxes
 
-    cv2.imshow('IMage',im)
-    cv2.waitKey(1)
+        for box in boxes:
+            # Bounding box coordinates
+            x1, y1, x2, y2 = box.xyxy[0]
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+
+            # Draw bounding box
+            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
+
+            # Confidence
+            confidence = math.ceil((box.conf[0] * 100)) / 100
+            print("Confidence --->", confidence)
+
+            # Class name
+            cls = int(box.cls[0])
+            print("Class name -->", classNames[cls])
+
+            # Display class name and confidence on the image
+            org = [x1, y1]
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            fontScale = 1
+            color = (255, 0, 0)
+            thickness = 2
+            label = f"{classNames[cls]} {confidence:.2f}"
+            cv2.putText(img, label, org, font, fontScale, color, thickness)
+    cv2.imshow('ESP32-CAM Stream', img)
+    if cv2.waitKey(1) == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
